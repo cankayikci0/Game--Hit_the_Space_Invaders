@@ -1,0 +1,4 @@
+﻿  HW2.cpp
+C:\Users\Can\source\repos\FRESH\FRESH\HW2.cpp(487,35): warning C4326: return type of 'main' should be 'int' instead of 'void'
+C:\Users\Can\source\repos\FRESH\FRESH\HW2.cpp(446): warning C4715: 'testCollision': not all control paths return a value
+  FRESH.vcxproj -> C:\Users\Can\source\repos\FRESH\Debug\FRESH.exe
