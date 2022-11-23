@@ -23,7 +23,7 @@ ADDITIONAL FEATURES:
 
 #define START 1
 #define RUN 2             //MODE CONSTANTS
-#define END 3
+#define END 3 
 
 #define WINDOW_WIDTH  1200
 #define WINDOW_HEIGHT 600
@@ -32,6 +32,7 @@ ADDITIONAL FEATURES:
 #define TIMER_ON         1 // 0:disable timer, 1:enable timer
 
 #define D2R 0.0174532
+
 //STRUCTURES
 typedef struct {
     float x, y;
@@ -47,7 +48,7 @@ typedef struct {
 }fire_t;
 
 fire_t fire;
-
+int xStart = -350;
 enemy_t enemy[5] = { {false} };
 int mode = START;
 /* Global Variables for Template File */
@@ -55,7 +56,7 @@ bool up = false, down = false, right = false, left = false;
 int number = 0;
 double timeCounter = 20;
 int  winWidth, winHeight; // current Window width and height
-int xShape = 0, xEnemy = -250, xEnemy2 = 250, numofFire = 0, a = 0, hit = 0, yE = 0, num;
+int xShape = 0, xEnemy = -250, xEnemy2 = 250, numofFire = 0, a = 0, hit = 0, yE = 0, num, textY = 5, tester = 0;
 bool blink = false;
 bool activeTimer = false;
 //
@@ -182,6 +183,40 @@ void drawTheEnemy(enemy_t enemy)
 
 }
 
+void drawTheEnemySTART()
+{
+    //line
+    glColor3ub(50, 50, 50);
+    glLineWidth(5);
+    glBegin(GL_LINES);
+    glVertex2f(xStart - 60, yE + 180);
+    glVertex2f(xStart - 30, yE + 180);
+    glEnd();
+
+    glRectf(xStart - 60, yE + 250, xStart - 300, yE + 110);
+    glColor3f(1, 1, 1);
+    print(xStart - 270, yE + 220, "CAN KAYIKCI", GLUT_BITMAP_TIMES_ROMAN_24);
+    print(xStart - 270, yE + 190, "22103969", GLUT_BITMAP_TIMES_ROMAN_24);
+    print(xStart - 270, yE + 160, "HOMEWORK-II", GLUT_BITMAP_TIMES_ROMAN_24);
+
+    glColor3ub(0, 0, 204);
+    glRectf(xStart - 15, yE + 200, xStart + 15, yE + 160);
+    glRectf(xStart - 15, yE + 195, xStart - 25, yE + 160);
+    glRectf(xStart + 15, yE + 195, xStart + 25, yE + 160);
+    glRectf(xStart - 25, yE + 190, xStart - 32, yE + 165);
+    glRectf(xStart + 25, yE + 190, xStart + 32, yE + 165);
+    //TAIL                    
+    glRectf(xStart - 25, yE + 160, xStart - 35, 140);
+    glRectf(xStart + 25, yE + 160, xStart + 35, 140);
+    glRectf(xStart - 5, yE + 160, xStart - 15, yE + 140);
+    glRectf(xStart + 5, yE + 160, xStart + 15, yE + 140);
+    //EYES
+    glColor3ub(100, 100, 100);
+    glRectf(xStart - 25, yE + 180, xStart - 8, yE + 173);
+    glRectf(xStart + 25, yE + 180, xStart+ 8, yE + 173);
+
+}
+
 void resetTheTarget()
 {
     for (int i = 0; i < 5; i++) {
@@ -208,7 +243,7 @@ void drawStar()
 {
     int x = rand() % 2400 - 1200;
     int y = rand() % 600 - 300;
-    glColor4f(1, 1, 1, 0.5);
+    glColor4f(1, 1, 1, 0.7);
     circle(x, y, 2);
 }
 
@@ -250,10 +285,10 @@ void drawTheShape()
     //FIRE
     if (blink)
     {
-        glColor3f(1, 1, 0);
+        glColor3f(255, 240, 0);
     }
     else
-        glColor3f(1, 0, 0);
+        glColor3ub(206, 32, 41);
     circle(xShape - 65, -292, 5);
     circle(xShape + 65, -292, 5);
 }
@@ -274,10 +309,9 @@ void displayBackground()
     for (int i = 0; i < 50; i++)
         drawStar();
     vprint(500, 70, GLUT_BITMAP_8_BY_13, "HIT : %d", hit);
-    if (mode == START) {
-        glColor3f(1, 0, 1);
-        print(200, 270, "Press Spacebar to Start", GLUT_BITMAP_TIMES_ROMAN_24);
-    }
+
+    //INFORMATION
+    
 }
 
 //
@@ -291,19 +325,34 @@ void display() {
     glClear(GL_COLOR_BUFFER_BIT);
     displayBackground();
     drawTheShape();
-    for (int i = 0; i < 5; i++) {
-        if (!enemy[i].hit) {
-            if (i % 2 == 1)
-                drawTheEnemy2(enemy[i]);
-            else
-                drawTheEnemy(enemy[i]);
+    if (mode == RUN) {
+        for (int i = 0; i < 5; i++) {
+            if (!enemy[i].hit) {
+                if (i % 2 == 1)
+                    drawTheEnemy2(enemy[i]);
+                else
+                    drawTheEnemy(enemy[i]);
+            }
         }
     }
-    //drawTheEnemy2();
     if (fire.active)
         drawFire();
     resetTheTarget();
-    //drawTheEnemy2();
+    if (mode == START) {
+        glColor3ub(100, 100, 100);
+        glRectf(600, 300, -600, -300);
+        glColor3f(0, 179, 179);
+        print(-80, textY-250, "Press F1 to Start", GLUT_BITMAP_HELVETICA_18);
+        glColor3ub(26, 0, 26);
+        print(-120, 0, "SPACE INVADERS", GLUT_BITMAP_TIMES_ROMAN_24);
+        drawTheEnemySTART();
+    }
+    if (mode == END) {
+        print(-80, textY - 250, "Press F1 to Start", GLUT_BITMAP_HELVETICA_18);
+        print(-120, 0, "GAME ENDED", GLUT_BITMAP_HELVETICA_18);
+    }
+
+    
     glutSwapBuffers();
 }
 
@@ -315,12 +364,10 @@ void onKeyDown(unsigned char key, int x, int y)
     // exit when ESC is pressed.
     if (key == 27)
         exit(0);
-    if (key == ' ') {
-        mode = RUN;
-        activeTimer = !activeTimer;
-        for (int i = 0; i < 5; i++)
-            enemy[i].pos.x = -250 * i;
-
+    if (key == ' ' && fire.active == false) {
+        fire.pos.y = -200;
+        fire.pos.x = xShape;
+        fire.active = true;
     }
 
 
@@ -355,10 +402,14 @@ void onSpecialKeyDown(int key, int x, int y)
         xShape += 10;
     if (key == GLUT_KEY_LEFT && xShape > -530)
         xShape += -10;
-    if (key == GLUT_KEY_F1 && fire.active == false) {
-        fire.pos.y = -200;
-        fire.pos.x = xShape;
-        fire.active = true;
+    
+
+    if (key == GLUT_KEY_F1) {
+        mode = RUN;
+        activeTimer = !activeTimer;
+        for (int i = 0; i < 5; i++)
+            enemy[i].pos.x = -250 * i;
+
     }
 
 
@@ -454,7 +505,10 @@ void onTimer(int v) {
     glutTimerFunc(TIMER_PERIOD, onTimer, 0);
     // Write your codes here.
     if (activeTimer) {
-        timeCounter -= 0.01;
+        if (timeCounter >= 0)
+            timeCounter -= 0.01;
+        else
+            mode = END;
         for (int i = 0; i < 5; i++) {
             enemy[i].pos.x += 4;
         }
@@ -470,7 +524,14 @@ void onTimer(int v) {
             //hitted(enemy, i);
             enemy[i].hit = true;
         }
-        
+    }
+    tester++;
+    if (tester > 50) {
+        textY = -textY;
+        tester = 0;
+        xStart += 20;
+        if (xStart > 600)
+            xStart = -600;
     }
         
     // to refresh the window it calls display() function
