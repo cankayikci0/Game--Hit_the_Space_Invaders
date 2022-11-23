@@ -293,7 +293,10 @@ void display() {
     drawTheShape();
     for (int i = 0; i < 5; i++) {
         if (!enemy[i].hit) {
-            drawTheEnemy2(enemy[i]);
+            if (i % 2 == 1)
+                drawTheEnemy2(enemy[i]);
+            else
+                drawTheEnemy(enemy[i]);
         }
     }
     //drawTheEnemy2();
