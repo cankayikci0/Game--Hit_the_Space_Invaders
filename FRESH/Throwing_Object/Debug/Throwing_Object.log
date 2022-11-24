@@ -1,3 +1,0 @@
-﻿  Throwing_Obj.cpp
-C:\Users\Can\source\repos\FRESH\Throwing_Object\Throwing_Obj.cpp(330,35): warning C4326: return type of 'main' should be 'int' instead of 'void'
-  Throwing_Object.vcxproj -> C:\Users\Can\source\repos\FRESH\Debug\Throwing_Object.exe
