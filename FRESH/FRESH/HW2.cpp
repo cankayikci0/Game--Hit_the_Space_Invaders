@@ -1,13 +1,20 @@
 /*********
    CTIS164 - Template Source Program
 ----------
-STUDENT :
-SECTION :
+STUDENT : CAN KAYIKCI
+SECTION : 1
 HOMEWORK: 2
 ----------
 PROBLEMS:
 ----------
-ADDITIONAL FEATURES:
+ADDITIONAL FEATURES:        1-Shows the score while playing
+                            2-Added scoreboard. Keeps the scores up to 12 games. Used bubblesort to display scores
+                            in an ascending order.
+                            3-The 'score' increases differently depending on the impact.
+                            For example, if you hit the target slightly(as hitting its ears), you earn less points.
+                            However, if you hit its center or next to the center, you earn more points.
+                            4-)User cannot move or fire when game is paused
+                            
 *********/
 
 #ifdef _MSC_VER
@@ -24,6 +31,7 @@ ADDITIONAL FEATURES:
 #define START 1
 #define RUN 2             //MODE CONSTANTS
 #define END 3 
+#define PAUSE 4
 
 #define WINDOW_WIDTH  1200
 #define WINDOW_HEIGHT 600
@@ -47,18 +55,24 @@ typedef struct {
     bool active;
 }fire_t;
 
+int scores[12]; // ARRAY TO KEEP THE DATA OF SCORES
+
 fire_t fire;
-int xStart = -350;
+int xStart = -300;
 enemy_t enemy[5] = { {false} };
 int mode = START;
 /* Global Variables for Template File */
-bool up = false, down = false, right = false, left = false;
-int number = 0;
+bool up = false, down = false, right = false, left = false, tab = false;
+int number = 0, playerNum = 0;
+//TIME COUNTER -- 20 SECOND
 double timeCounter = 20;
 int  winWidth, winHeight; // current Window width and height
-int xShape = 0, xEnemy = -250, xEnemy2 = 250, numofFire = 0, a = 0, hit = 0, yE = 0, num, textY = 5, tester = 0;
+// NECESSARY INITIALIZATIONS
+int xShape = 0, xEnemy = -250, xEnemy2 = 250, hit = 0, yE = 0, num, textY = 5, tester = 0;
 bool blink = false;
 bool activeTimer = false;
+
+
 //
 // to draw circle, center at (x,y)
 // radius r
@@ -141,8 +155,10 @@ void vprint2(int x, int y, float size, const char* string, ...) {
     glPopMatrix();
 }
 
+//FIRST TARGET'S DRAWING
 void drawTheEnemy2(enemy_t enemy)
 {
+    
     glColor3ub(240, 30, 0);
     glRectf(enemy.pos.x - 15, yE+200, enemy.pos.x + 15, yE+155);
     glRectf(enemy.pos.x - 15, yE+195, enemy.pos.x - 25, yE+155);
@@ -162,7 +178,7 @@ void drawTheEnemy2(enemy_t enemy)
     glRectf(enemy.pos.x - 10, yE+155, enemy.pos.x + 10, yE+150);
     glRectf(enemy.pos.x - 18, yE+140, enemy.pos.x + 18, yE+133);
 }
-
+//SECOND TARGET'S DRAWING
 void drawTheEnemy(enemy_t enemy)
 {
     glColor3ub(0, 0, 204);
@@ -182,7 +198,7 @@ void drawTheEnemy(enemy_t enemy)
     glRectf(enemy.pos.x + 25, yE+180, enemy.pos.x + 8, yE+173);
 
 }
-
+//START SCREEN'S TARGET'S DRAWING
 void drawTheEnemySTART()
 {
     //line
@@ -216,9 +232,10 @@ void drawTheEnemySTART()
     glRectf(xStart + 25, yE + 180, xStart+ 8, yE + 173);
 
 }
-
+//RESET TARGET'S X COORDINATES
 void resetTheTarget()
 {
+    //WHEN IT IS GREATER THAN WINDOW WIDTH OR HIT
     for (int i = 0; i < 5; i++) {
         if (enemy[i].pos.x > 800)
             enemy[i].pos.x = -600;
@@ -226,62 +243,58 @@ void resetTheTarget()
             enemy[i].pos.x = -600;
             enemy[i].hit = false;
         }
-
     }
-    
+    //OR WHEN THE GAME RESTARTS
+    if (mode == END)
+    {
+        for (int i = 0; i < 5; i++)
+            enemy[i].pos.x = -250 * i;
+    }
 }
-
-void hitted(enemy_t enemy[], int hitEnemy)
-{
-    if (enemy[hitEnemy].pos.x != enemy[hitEnemy - 1].pos.x || enemy[hitEnemy].pos.x != enemy[hitEnemy + 1].pos.x)
-        enemy[hitEnemy].pos.x = -650;
-    else
-        enemy[hitEnemy].pos.x = -750;
-}
-
+//STAR EFFECT TO FEEL LIKE CHARACTERS ARE MOVING THROUGH SPACE
 void drawStar()
 {
-    int x = rand() % 2400 - 1200;
+    int x = rand() % 1200 - 600;
     int y = rand() % 600 - 300;
     glColor4f(1, 1, 1, 0.7);
     circle(x, y, 2);
 }
-
+//SPACESHIP'S DRAWING
 void drawTheShape()
 {
     //BODY
     glColor3f(1, 1, 1);
-    glRectf(xShape - 20, -240, xShape + 20, -200);
-    glRectf(xShape - 10, -200, xShape + 10, -180);
-    glRectf(xShape - 2.5, -180, xShape + 2.5, -160);
+    glRectf(xShape - 20, -220, xShape + 20, -180);
+    glRectf(xShape - 10, -180, xShape + 10, -160);
+    glRectf(xShape - 2.5, -160, xShape + 2.5, -140);
     glColor3f(1, 1, 0);
-    glRectf(xShape - 2.5, -160, xShape + 2.5, -150);
+    glRectf(xShape - 2.5, -140, xShape + 2.5, -130);
     //WINGS
     //LEFT WING
     glColor3f(1, 0, 0);
-    glRectf(xShape + 20, -205, xShape + 30, -235);
-    glRectf(xShape + 30, -215, xShape + 40, -245);
-    glRectf(xShape + 40, -225, xShape + 50, -255);
-    glRectf(xShape + 50, -235, xShape + 60, -265);
-    glRectf(xShape + 60, -245, xShape + 70, -285);
-    glRectf(xShape + 60, -205, xShape + 70, -185);
+    glRectf(xShape + 20, -185, xShape + 30, -215);
+    glRectf(xShape + 30, -195, xShape + 40, -225);
+    glRectf(xShape + 40, -205, xShape + 50, -235);
+    glRectf(xShape + 50, -215, xShape + 60, -245);
+    glRectf(xShape + 60, -225, xShape + 70, -265);
+    glRectf(xShape + 60, -185, xShape + 70, -165);
     glColor3f(1, 1, 1);
-    glRectf(xShape + 60, -245, xShape + 70, -205);
+    glRectf(xShape + 60, -225, xShape + 70, -185);
     //RIGHT WING
     glColor3f(1, 0, 0);
-    glRectf(xShape - 20, -205, xShape - 30, -235);
-    glRectf(xShape - 30, -215, xShape - 40, -245);
-    glRectf(xShape - 40, -225, xShape - 50, -255);
-    glRectf(xShape - 50, -235, xShape - 60, -265);
-    glRectf(xShape - 60, -245, xShape - 70, -285);
-    glRectf(xShape - 60, -205, xShape - 70, -185);
+    glRectf(xShape - 20, -185, xShape - 30, -215);
+    glRectf(xShape - 30, -195, xShape - 40, -225);
+    glRectf(xShape - 40, -205, xShape - 50, -235);
+    glRectf(xShape - 50, -215, xShape - 60, -245);
+    glRectf(xShape - 60, -225, xShape - 70, -265);
+    glRectf(xShape - 60, -185, xShape - 70, -165);
     glColor3f(1, 1, 1);
-    glRectf(xShape - 60, -245, xShape - 70, -205);
+    glRectf(xShape - 60, -225, xShape - 70, -185);
     //BOTTOM
     glColor3f(1, 0, 1);
-    glRectf(xShape - 20, -240, xShape + 20, -250);
-    glRectf(xShape - 10, -250, xShape + 10, -260);
-    glRectf(xShape - 5, -260, xShape + 5, -270);
+    glRectf(xShape - 20, -220, xShape + 20, -230);
+    glRectf(xShape - 10, -230, xShape + 10, -240);
+    glRectf(xShape - 5, -240, xShape + 5, -250);
     //FIRE
     if (blink)
     {
@@ -289,28 +302,75 @@ void drawTheShape()
     }
     else
         glColor3ub(206, 32, 41);
-    circle(xShape - 65, -292, 5);
-    circle(xShape + 65, -292, 5);
+    circle(xShape - 65, -272, 5);
+    circle(xShape + 65, -272, 5);
 }
-
+//SPACESHIP'S BULLET
 void drawFire()
 {
-    glColor3f(1, 0, 1);
-    circle(fire.pos.x, fire.pos.y, 15);
+    glColor3ub(240, 240, 0);
+    glRectf(fire.pos.x + 5, fire.pos.y + 30, fire.pos.x, fire.pos.y);
 }
+//SHOW SCOREBOARD WHEN F3 IS PRESSED
+void displayscoreBoard()
+{
+   glColor3ub(70, 70, 70);
+   glRectf(-500, 0, -200, -200);
+   glColor3f(0, 0, 0);
+   vprint(-400, -20, GLUT_BITMAP_8_BY_13, "SCOREBOARD");
+   for (int i = 0; i < playerNum; i++)
+       vprint(-450, i*-15-32, GLUT_BITMAP_8_BY_13, "%d-) %d", i+1,scores[i]);
 
+}
+//BUBBLE SORT THE SCORES TO SHOW IN AN ASCENDING ORDER
+void bubbleSort(int scores[])
+{
+    int sorted, pass = 1, k, temp;
+    do {
+        sorted = 1;
+        for(k = 0; k < playerNum-pass;k++)
+            if (scores[k] < scores[k + 1])
+            {
+                temp = scores[k];
+                scores[k] = scores[k+1];
+                scores[k + 1] = temp;
+                sorted = 0;
+            }
+        pass++;
+    } while (!sorted);
+}
+//BACKGROUND CONTAINER
 void displayBackground()
 {
     glColor3ub(30, 30, 30);
     glRectf(-600, -300, 600, 300);
     glColor3f(1, 1, 1);
-    vprint(500, 270, GLUT_BITMAP_8_BY_13, "%.2f", timeCounter);
+    //REMAINING TIME
+    if (mode == RUN || mode == PAUSE) {
+        vprint(300, 270, GLUT_BITMAP_8_BY_13, " REMAINING TIME: %.2f", timeCounter);
+    }
     // vprint(-winWidth / 2 + 10, winHeight / 2 - 20, GLUT_BITMAP_8_BY_13, "ERROR: %d", numClicks);
-    for (int i = 0; i < 50; i++)
-        drawStar();
-    vprint(500, 70, GLUT_BITMAP_8_BY_13, "HIT : %d", hit);
+    if(mode == RUN || mode == PAUSE)
+        for (int i = 0; i < 50; i++)
+            drawStar();
+    //SHOWS THE SCORE
+    if(mode == RUN || mode == PAUSE)
+        vprint(450, 70, GLUT_BITMAP_8_BY_13, "YOUR SCORE : %d", hit);
+    if(mode == END)
+        vprint(400, 70, GLUT_BITMAP_8_BY_13, "YOUR SCORE is : %d", hit);
+    //SHOWS THE SCOREBOARD
+    if (tab || mode == END) {
+        bubbleSort(scores);
+        displayscoreBoard();
+    }
 
     //INFORMATION
+    if (mode == RUN || mode == PAUSE) {
+        glColor3f(0, 0, 0);
+        glRectf(-600, -277, 600, -300);
+        glColor3f(1, 1, 0);
+        vprint(-500, -290, GLUT_BITMAP_8_BY_13, "F1 = PAUSE/RESTART  F3 = SCOREBOARD   SPACE = SHOOT  RIGHT/LEFT ARROW = MOVE             CAN KAYIKCI 22103969");
+    }
     
 }
 
@@ -325,7 +385,8 @@ void display() {
     glClear(GL_COLOR_BUFFER_BIT);
     displayBackground();
     drawTheShape();
-    if (mode == RUN) {
+    //DRAWS THE ENEMIES
+    if (mode == RUN || mode == PAUSE) {
         for (int i = 0; i < 5; i++) {
             if (!enemy[i].hit) {
                 if (i % 2 == 1)
@@ -335,24 +396,25 @@ void display() {
             }
         }
     }
+    //DRAWS THE BULLET
     if (fire.active)
         drawFire();
     resetTheTarget();
+    //INFORMS THE USER WHEN IT IS NECESSARY
     if (mode == START) {
         glColor3ub(100, 100, 100);
         glRectf(600, 300, -600, -300);
         glColor3f(0, 179, 179);
         print(-80, textY-250, "Press F1 to Start", GLUT_BITMAP_HELVETICA_18);
         glColor3ub(26, 0, 26);
-        print(-120, 0, "SPACE INVADERS", GLUT_BITMAP_TIMES_ROMAN_24);
+        print(-140, 0, "HIT THE SPACE INVADERS", GLUT_BITMAP_TIMES_ROMAN_24);
         drawTheEnemySTART();
     }
     if (mode == END) {
         print(-80, textY - 250, "Press F1 to Start", GLUT_BITMAP_HELVETICA_18);
-        print(-120, 0, "GAME ENDED", GLUT_BITMAP_HELVETICA_18);
+        print(-100, 50, "GAME ENDED", GLUT_BITMAP_TIMES_ROMAN_24);
     }
-
-    
+   
     glutSwapBuffers();
 }
 
@@ -364,13 +426,12 @@ void onKeyDown(unsigned char key, int x, int y)
     // exit when ESC is pressed.
     if (key == 27)
         exit(0);
-    if (key == ' ' && fire.active == false) {
-        fire.pos.y = -200;
-        fire.pos.x = xShape;
+    //FIRES THE BULLET
+    if (key == ' ' && fire.active == false && mode == RUN) {
+        fire.pos.y = -140;
+        fire.pos.x = xShape-2.5;
         fire.active = true;
     }
-
-
     // to refresh the window it calls display() function
     glutPostRedisplay();
 }
@@ -397,23 +458,39 @@ void onSpecialKeyDown(int key, int x, int y)
     case GLUT_KEY_DOWN: down = true; break;
     case GLUT_KEY_LEFT: left = true; break;
     case GLUT_KEY_RIGHT: right = true; break;
+    case GLUT_KEY_F3: tab = true;
     }
-    if (key == GLUT_KEY_RIGHT && xShape < 530)
-        xShape += 10;
-    if (key == GLUT_KEY_LEFT && xShape > -530)
-        xShape += -10;
-    
-
+    //MOVE THE SPACESHIP
+    if (mode == RUN) {
+        if (key == GLUT_KEY_RIGHT && xShape < 530)
+            xShape += 10;
+        if (key == GLUT_KEY_LEFT && xShape > -530)
+            xShape += -10;
+    }
+    //F1 KEY ARRANGEMENTS
     if (key == GLUT_KEY_F1) {
-        mode = RUN;
-        activeTimer = !activeTimer;
-        for (int i = 0; i < 5; i++)
-            enemy[i].pos.x = -250 * i;
-
+        switch (mode) {
+        case START:
+            mode = RUN;
+            activeTimer = !activeTimer;
+            for (int i = 0; i < 5; i++)
+                enemy[i].pos.x = -250 * i;
+            break;
+        case END:
+            activeTimer = true;
+            mode = RUN;
+            hit = 0;
+            break;
+        case RUN:
+            activeTimer = false;
+            mode = PAUSE;
+            break;
+        case PAUSE:
+            mode = RUN;
+            activeTimer = true;
+            
+        }
     }
-
-
-
     // to refresh the window it calls display() function
     glutPostRedisplay();
 }
@@ -432,6 +509,7 @@ void onSpecialKeyUp(int key, int x, int y)
     case GLUT_KEY_DOWN: down = false; break;
     case GLUT_KEY_LEFT: left = false; break;
     case GLUT_KEY_RIGHT: right = false; break;
+    case GLUT_KEY_F3: tab = false;
     }
     // to refresh the window it calls display() function
     glutPostRedisplay();
@@ -492,7 +570,7 @@ void onMove(int x, int y) {
     // to refresh the window it calls display() function
     glutPostRedisplay();
 }
-
+//CHECKS WHETHER THE TARGET IS HIT
 int testCollision(fire_t fire, enemy_t enemy)
 {
     if (fire.pos.y > 120 && fire.pos.y < 200 && fire.pos.x > enemy.pos.x-30 && fire.pos.x < enemy.pos.x+30)
@@ -505,26 +583,34 @@ void onTimer(int v) {
     glutTimerFunc(TIMER_PERIOD, onTimer, 0);
     // Write your codes here.
     if (activeTimer) {
+        //REDUCES TIME COUNTER
         if (timeCounter >= 0)
             timeCounter -= 0.01;
-        else
+        else {
+            //WHEN TIME IS OVER
             mode = END;
+            activeTimer = !activeTimer;
+            timeCounter = 20;
+            scores[playerNum] = hit;
+            playerNum++;
+        }
         for (int i = 0; i < 5; i++) {
             enemy[i].pos.x += 4;
         }
     }
     blink = !blink;
-    if (fire.active) 
+    if (fire.active && mode == RUN) 
         fire.pos.y += 10;
     if (fire.pos.y > 300)
         fire.active = false;
+    //testCollision for every target
     for (int i = 0; i < 5; i++) {
         if (testCollision(fire, enemy[i]) == 1) {
             hit++;
-            //hitted(enemy, i);
             enemy[i].hit = true;
         }
     }
+    //FOR THE MOVING SENTENCE AND TARGET IN THE START SCREEN
     tester++;
     if (tester > 50) {
         textY = -textY;
@@ -553,7 +639,7 @@ void main(int argc, char* argv[]) {
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
     glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
     //glutInitWindowPosition(100, 100);
-    glutCreateWindow("Hit the Invaders");
+    glutCreateWindow("Hit the Space Invaders");
 
     glutDisplayFunc(display);
     glutReshapeFunc(onResize);
