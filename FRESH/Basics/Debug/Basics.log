@@ -1,3 +1,0 @@
-﻿  Basics.cpp
-C:\Users\Can\source\repos\FRESH\Basics\Basics.cpp(452,1): warning C4326: return type of 'main' should be 'int' instead of 'void'
-  Basics.vcxproj -> C:\Users\Can\source\repos\FRESH\Debug\Basics.exe
